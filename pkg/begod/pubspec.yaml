@@ -1,0 +1,14 @@
+name: begod
+description: A Mustache template engine with expression support, built-in helpers and filters, powered by ANTLR4.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  antlr4: ^4.13.2
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.25.0

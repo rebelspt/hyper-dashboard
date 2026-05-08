@@ -1,0 +1,355 @@
+# Demo Dashboard
+# A showcase of all available widget types and layout options.
+#
+# Run with:
+#   dart run bin/hyper_dashboard.dart --config config/demo.yaml
+#
+# Based on the Tokyo Night theme by enkia
+# https://github.com/enkia/tokyo-night-vscode-theme
+
+theme:
+  background: "#1a1b26"
+  surface: "#24283b"
+  border: "#2f3349"
+  text: "#c0caf5"
+  text-muted: "#565f89"
+  accent: "#7aa2f7"
+  font: "Inter, system-ui, sans-serif"
+  radius: "6px"
+
+pages:
+  # ──────────────────────────────────────────────
+  # PAGE 1 — Home
+  # ──────────────────────────────────────────────
+  - name: Home
+    columns:
+      # ── LEFT COLUMN ──
+      - size: small
+        widgets:
+          - type: calendar
+            first-day-of-week: monday
+
+          - type: clock
+            title: World Clocks
+            timezones:
+              - label: London
+                timezone: Europe/London
+              - label: New York
+                timezone: America/New_York
+              - label: Tokyo
+                timezone: Asia/Tokyo
+              - label: Sydney
+                timezone: Australia/Sydney
+
+          - type: weather
+            title: London
+            location: London
+            units: metric
+            cache: 30m
+            async-policy: stale
+
+      # ── CENTER COLUMN ──
+      - size: full
+        widgets:
+          - type: search
+            hide-header: true
+            autofocus: true
+            placeholder: Search or type a URL…
+            bangs:
+              - title: YouTube
+                shortcut: "!yt"
+                url: https://www.youtube.com/results?search_query={QUERY}
+              - title: GitHub
+                shortcut: "!gh"
+                url: https://github.com/search?q={QUERY}
+              - title: Wikipedia
+                shortcut: "!w"
+                url: https://en.wikipedia.org/wiki/Special:Search?search={QUERY}
+              - title: DuckDuckGo
+                shortcut: "!ddg"
+                url: https://duckduckgo.com/?q={QUERY}
+
+          - type: bookmarks
+            title: Quick Links
+            groups:
+              - name: Dev
+                links:
+                  - name: GitHub
+                    url: https://github.com
+                    icon: github
+                  - name: Hacker News
+                    url: https://news.ycombinator.com
+                    icon: hackernews
+                  - name: Stack Overflow
+                    url: https://stackoverflow.com
+                    icon: stackoverflow
+                  - name: MDN
+                    url: https://developer.mozilla.org
+                    icon: mdnwebdocs
+              - name: Media
+                links:
+                  - name: YouTube
+                    url: https://youtube.com
+                    icon: youtube
+                  - name: Reddit
+                    url: https://reddit.com
+                    icon: reddit
+                  - name: Twitch
+                    url: https://twitch.tv
+                    icon: twitch
+
+          - type: group
+            title: News
+            cache: 30m
+            async-policy: stale
+            widgets:
+              - type: hacker-news
+                title: Hacker News
+                limit: 8
+
+              - type: lobsters
+                title: Lobsters
+                limit: 6
+                sort-by: hot
+
+      # ── RIGHT COLUMN ──
+      - size: small
+        widgets:
+          - type: monitor
+            title: Uptime
+            cache: 5m
+            async-policy: stale
+            sites:
+              - title: Google
+                url: https://www.google.com
+              - title: GitHub
+                url: https://github.com
+              - title: Cloudflare
+                url: https://www.cloudflare.com
+
+          - type: markets
+            hide-header: true
+            cache: 5m
+            async-policy: stale
+            markets:
+              - symbol: SPY
+                name: S&P 500
+              - symbol: BTC-USD
+                name: Bitcoin
+              - symbol: NVDA
+                name: NVIDIA
+              - symbol: AAPL
+                name: Apple
+
+          - type: reddit
+            title: r/technology
+            subreddit: technology
+            limit: 8
+            sort-by: hot
+            cache: 15m
+            async-policy: stale
+
+  # ──────────────────────────────────────────────
+  # PAGE 2 — Development
+  # ──────────────────────────────────────────────
+  - name: Dev
+    columns:
+      # ── LEFT COLUMN ──
+      - size: small
+        widgets:
+          - type: rss
+            title: Tech Blogs
+            cache: 1h
+            limit: 8
+            async-policy: stale
+            feeds:
+              - url: https://selfh.st/rss/
+                name: selfh.st
+              - url: https://ciechanow.ski/atom.xml
+                name: Bartosz Ciechanowski
+              - url: https://www.joshwcomeau.com/rss.xml
+                name: Josh Comeau
+
+          - type: releases
+            title: Releases
+            cache: 1h
+            limit: 6
+            async-policy: stale
+            repositories:
+              - go-gitea/gitea
+              - glanceapp/glance
+              - tailscale/tailscale
+              - neovim/neovim
+
+      # ── CENTER COLUMN ──
+      - size: full
+        widgets:
+          - type: html
+            title: About This Page
+            source: |
+              <div style="text-align:center;padding:0.5rem 0">
+                <div style="font-size:2rem">🛠️</div>
+                <p style="margin:0.25rem 0;color:var(--text-muted)">
+                  Hyper Dashboard — monitoring tools, repositories, and feeds.
+                </p>
+              </div>
+
+          - type: docker
+            title: Docker Containers
+            cache: 10s
+            socket: unix:///var/run/docker.sock
+            limit: 20
+
+          - type: api
+            title: GitHub Stats
+            cache: 30m
+            async-policy: stale
+            routes:
+              - path: _default
+                url: https://api.github.com/users/octocat
+                template: |
+                  <div style="display:flex;gap:16px;align-items:center">
+                    <img src="{{avatar_url}}" style="width:64px;height:64px;border-radius:50%">
+                    <div>
+                      <div style="font-weight:600;font-size:1.1rem">{{login}}</div>
+                      <div style="color:var(--text-muted);font-size:0.85rem">{{bio | default("No bio")}}</div>
+                      <div style="display:flex;gap:12px;margin-top:6px;font-size:0.8rem">
+                        <span>📦 {{public_repos}} repos</span>
+                        <span>👥 {{followers}} followers</span>
+                      </div>
+                    </div>
+                  </div>
+
+      # ── RIGHT COLUMN ──
+      - size: small
+        widgets:
+          - type: videos
+            title: Latest Videos
+            cache: 1h
+            limit: 10
+            async-policy: stale
+            channels:
+              - UCR-DXc1voovS8nhAvccRZhg   # Jeff Geerling
+              - UCnUYZLuoy1rq1aVMwx4aTzw   # Fireship
+              - UCVls1GmFKf6WlTraIb_IaJg   # DistroTube
+
+          - type: split-column
+            max-columns: 2
+            async-policy: stale
+            widgets:
+              - type: reddit
+                title: r/selfhosted
+                subreddit: selfhosted
+                limit: 5
+                sort-by: hot
+
+              - type: reddit
+                title: r/programming
+                subreddit: programming
+                limit: 5
+                sort-by: hot
+
+  # ──────────────────────────────────────────────
+  # PAGE 3 — Examples (for reference)
+  # ──────────────────────────────────────────────
+  - name: Examples
+    columns:
+      - size: small
+        widgets:
+          - type: iframe
+            title: OpenStreetMap
+            source: https://www.openstreetmap.org/export/embed.html?bbox=-0.25,51.45,0.05,51.57&layer=mapnik
+            height: 400
+
+          - type: html
+            title: Welcome
+            source: |
+              <div style="text-align:center;padding:1rem 0">
+                <h2 style="margin:0">Hyper Dashboard</h2>
+                <p style="color:var(--text-muted);margin:0.5rem 0">
+                  Self-hosted · No JavaScript framework · HTMX-powered
+                </p>
+              </div>
+
+      - size: full
+        widgets:
+          - type: api
+            title: Crypto Prices
+            cache: 5m
+            async-policy: stale
+            style: |
+              .price { font-weight:600; font-size:1.1rem; }
+              .change { font-size:0.85rem; }
+              .up { color:#4ade80; }
+              .down { color:#f87171; }
+            routes:
+              - path: _default
+                url: https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true
+                method: GET
+                template: |
+                  <table style="width:100%;border-collapse:collapse">
+                    <tr>
+                      <th style="text-align:left;padding:6px">Bitcoin</th>
+                      <td class="price" style="text-align:right">{{bitcoin.usd | number_format(2)}}</td>
+                      <td class="change {{#if bitcoin.usd_24h_change > 0}}up{{/if}}{{#if bitcoin.usd_24h_change <= 0}}down{{/if}}" style="text-align:right">
+                        {{bitcoin.usd_24h_change | number_format(2)}}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <th style="text-align:left;padding:6px">Ethereum</th>
+                      <td class="price" style="text-align:right">{{ethereum.usd | number_format(2)}}</td>
+                      <td class="change {{#if ethereum.usd_24h_change > 0}}up{{/if}}{{#if ethereum.usd_24h_change <= 0}}down{{/if}}" style="text-align:right">
+                        {{ethereum.usd_24h_change | number_format(2)}}%
+                      </td>
+                    </tr>
+                    <tr>
+                      <th style="text-align:left;padding:6px">Solana</th>
+                      <td class="price" style="text-align:right">{{solana.usd | number_format(2)}}</td>
+                      <td class="change {{#if solana.usd_24h_change > 0}}up{{/if}}{{#if solana.usd_24h_change <= 0}}down{{/if}}" style="text-align:right">
+                        {{solana.usd_24h_change | number_format(2)}}%
+                      </td>
+                    </tr>
+                  </table>
+
+      - size: small
+        widgets:
+          - type: html
+            title: Notes
+            source: |
+              <p>Widgets that require API keys (commented out in your config):</p>
+              <ul style="font-size:0.85rem;color:var(--text-muted)">
+                <li><strong>audiobookshelf</strong> — needs <code>url</code> + <code>api-key</code></li>
+                <li><strong>twitch-channels</strong> — needs <code>client-id</code> + <code>client-secret</code></li>
+                <li><strong>twitch-top-games</strong> — needs <code>client-id</code> + <code>client-secret</code></li>
+              </ul>
+
+  # ──────────────────────────────────────────────
+  # OPTIONAL WIDGETS (uncomment and fill in your details)
+  # ──────────────────────────────────────────────
+  #
+  # - type: audiobookshelf
+  #   title: Continue Listening
+  #   cache: 10m
+  #   async-policy: stale
+  #   url: http://audiobookshelf.local:13378
+  #   api-key: YOUR_API_KEY
+  #   mode: continue
+  #   limit: 5
+  #
+  # - type: twitch-channels
+  #   title: Live Channels
+  #   cache: 5m
+  #   async-policy: stale
+  #   client-id: YOUR_CLIENT_ID
+  #   client-secret: YOUR_CLIENT_SECRET
+  #   channels:
+  #     - shroud
+  #     - timthetatman
+  #
+  # - type: twitch-top-games
+  #   title: Trending on Twitch
+  #   cache: 10m
+  #   async-policy: stale
+  #   client-id: YOUR_CLIENT_ID
+  #   client-secret: YOUR_CLIENT_SECRET
+  #   limit: 10

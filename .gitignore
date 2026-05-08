@@ -1,0 +1,23 @@
+# Dart / Pub
+.dart_tool/
+.packages
+pubspec.lock
+build/
+doc/api/
+
+# Runtime
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Project-specific
+.claude/
+.playwright-mcp
+coverage
+opencode.json

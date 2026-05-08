@@ -1,0 +1,188 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - name: Build executable
+        run: |
+          dart compile exe bin/hyper_dashboard.dart -o hyper-dashboard
+      - name: Package
+        run: |
+          mkdir -p hyper-dashboard-macos/config
+          cp hyper-dashboard hyper-dashboard-macos/
+          cp -r assets hyper-dashboard-macos/
+          cp config/demo.yaml hyper-dashboard-macos/config/hyper-dashboard.yaml
+          tar -czf hyper-dashboard-macos-arm64.tar.gz hyper-dashboard-macos
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hyper-dashboard-macos-arm64
+          path: hyper-dashboard-macos-arm64.tar.gz
+
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64, riscv64]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - name: Build executable
+        run: |
+          dart compile exe \
+            --target-os linux \
+            --target-arch ${{ matrix.arch }} \
+            bin/hyper_dashboard.dart \
+            -o hyper-dashboard
+      - name: Package
+        run: |
+          mkdir -p hyper-dashboard-linux-${{ matrix.arch }}/config
+          cp hyper-dashboard hyper-dashboard-linux-${{ matrix.arch }}/
+          cp -r assets hyper-dashboard-linux-${{ matrix.arch }}/
+          cp config/demo.yaml hyper-dashboard-linux-${{ matrix.arch }}/config/hyper-dashboard.yaml
+          tar -czf hyper-dashboard-linux-${{ matrix.arch }}.tar.gz hyper-dashboard-linux-${{ matrix.arch }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hyper-dashboard-linux-${{ matrix.arch }}
+          path: hyper-dashboard-linux-${{ matrix.arch }}.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - name: Build executable
+        shell: pwsh
+        run: |
+          dart compile exe bin/hyper_dashboard.dart -o hyper-dashboard.exe
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path hyper-dashboard-windows-x64/config
+          Copy-Item hyper-dashboard.exe hyper-dashboard-windows-x64/
+          Copy-Item -Recurse assets hyper-dashboard-windows-x64/
+          Copy-Item config/demo.yaml hyper-dashboard-windows-x64/config/hyper-dashboard.yaml
+          Compress-Archive -Path hyper-dashboard-windows-x64/* -DestinationPath hyper-dashboard-windows-x64.zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hyper-dashboard-windows-x64
+          path: hyper-dashboard-windows-x64.zip
+
+  docker:
+    needs: [build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-linux-x64
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-linux-arm64
+      - name: Prepare build context
+        run: |
+          mkdir -p assets config
+          tar xzf hyper-dashboard-linux-x64.tar.gz
+          cp hyper-dashboard-linux-x64/hyper-dashboard hyper-dashboard-linux-amd64
+          tar xzf hyper-dashboard-linux-arm64.tar.gz
+          cp hyper-dashboard-linux-arm64/hyper-dashboard hyper-dashboard-linux-arm64.bin
+          rm -rf hyper-dashboard-linux-arm64
+          mv hyper-dashboard-linux-arm64.bin hyper-dashboard-linux-arm64
+          cp -r hyper-dashboard-linux-x64/assets/* assets/
+          cp -r hyper-dashboard-linux-x64/config/* config/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}:latest
+
+  release:
+    needs: [build-macos, build-linux, build-windows, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-macos-arm64
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-linux-x64
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-linux-arm64
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-linux-riscv64
+      - uses: actions/download-artifact@v7
+        with:
+          name: hyper-dashboard-windows-x64
+      - name: Create GitHub Release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const tag = context.ref.replace('refs/tags/', '');
+
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: tag,
+              generate_release_notes: true,
+            });
+
+            const assets = [
+              ['hyper-dashboard-macos-arm64.tar.gz',  'application/gzip'],
+              ['hyper-dashboard-linux-x64.tar.gz',     'application/gzip'],
+              ['hyper-dashboard-linux-arm64.tar.gz',   'application/gzip'],
+              ['hyper-dashboard-linux-riscv64.tar.gz', 'application/gzip'],
+              ['hyper-dashboard-windows-x64.zip',      'application/zip'],
+            ];
+
+            for (const [file, mime] of assets) {
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name: file,
+                data: fs.readFileSync(file),
+                headers: { 'content-type': mime },
+              });
+            }

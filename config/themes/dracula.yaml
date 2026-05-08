@@ -1,0 +1,91 @@
+# Dracula — based on the iconic purple/cyan color scheme by Zeno Rocha
+# https://draculatheme.com
+theme:
+  background: "#282a36"
+  surface: "#1e1f29"
+  border: "#343746"
+  text: "#f8f8f2"
+  text-muted: "#6272a4"
+  accent: "#bd93f9"
+  font: "Inter, system-ui, sans-serif"
+  radius: "6px"
+
+pages:
+  - name: Home
+    columns:
+      - size: small
+        widgets:
+          - type: calendar
+            first-day-of-week: monday
+          - type: clock
+            timezone: UTC
+      - size: full
+        widgets:
+          - type: search
+            hide-header: true
+            search-engine: google
+            autofocus: true
+            placeholder: Search…
+            bangs:
+              - title: YouTube
+                shortcut: "!yt"
+                url: https://www.youtube.com/results?search_query={QUERY}
+              - title: GitHub
+                shortcut: "!gh"
+                url: https://github.com/search?q={QUERY}
+              - title: Wikipedia
+                shortcut: "!w"
+                url: https://en.wikipedia.org/wiki/Special:Search?search={QUERY}
+          - type: bookmarks
+            title: Links
+            groups:
+              - name: Dev
+                links:
+                  - name: GitHub
+                    url: https://github.com
+                    icon: github
+                  - name: Stack Overflow
+                    url: https://stackoverflow.com
+                    icon: stackoverflow
+                  - name: MDN
+                    url: https://developer.mozilla.org
+                    icon: mdnwebdocs
+          - type: hacker-news
+            title: Hacker News
+            limit: 8
+            cache: 30m
+            async-policy: stale
+          - type: releases
+            title: Releases
+            cache: 1h
+            limit: 8
+            async-policy: stale
+            repositories:
+              - go-gitea/gitea
+              - grafana/grafana
+              - glanceapp/glance
+      - size: small
+        widgets:
+          - type: monitor
+            title: Uptime
+            cache: 5m
+            async-policy: stale
+            sites:
+              - title: Google
+                url: https://www.google.com
+              - title: GitHub
+                url: https://github.com
+              - title: Wikipedia
+                url: https://en.wikipedia.org
+          - type: reddit
+            title: r/technology
+            subreddit: technology
+            limit: 8
+            sort-by: hot
+            async-policy: stale
+          - type: reddit
+            title: r/programming
+            subreddit: programming
+            limit: 8
+            sort-by: hot
+            async-policy: stale
