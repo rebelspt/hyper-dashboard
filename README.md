@@ -171,7 +171,7 @@ Columns are laid out horizontally. Use `small` for sidebars and `full` for the m
 ## Tech Stack
 
 - **Dart 3** with [Shelf](https://pub.dev/packages/shelf) HTTP server
-- **HTMX 1.9** for partial updates (no full-page reloads)
-- **Alpine.js 3** for reactive client-side state (media player)
+- **HTMX 2.0** for partial updates (no full-page reloads)
+- **Alpine.js 3.15** for reactive client-side state (media player)
 - **YAML** configuration parsed with [yaml](https://pub.dev/packages/yaml)
 - No build step, no bundler — just `dart run`

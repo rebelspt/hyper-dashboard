@@ -13,7 +13,9 @@ class PageRenderer {
 
   final Services services;
 
-  PageRenderer(this.config, this.widgetsByConfig, this.services);
+  final bool useLocalAssets;
+
+  PageRenderer(this.config, this.widgetsByConfig, this.services, {this.useLocalAssets = false});
 
   Future<Node> renderPage(int pageIndex) async {
     final idx = pageIndex.clamp(0, config.pages.length - 1);
@@ -31,13 +33,20 @@ class PageRenderer {
         }),
         meta({'name': 'referrer', 'content': 'no-referrer'}),
         el('title', {}, t('Dashboard — ${page.name}')),
-        script({'src': 'https://unpkg.com/htmx.org@1.9.12', 'defer': null}),
+        script({
+          'src': useLocalAssets
+              ? '/assets/htmx.min.js'
+              : 'https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js',
+          'defer': null,
+        }),
         script({'src': '/assets/playlist.js', 'defer': null}),
         script({'src': '/assets/clock.js', 'defer': null}),
         script({'src': '/assets/api-widget.js', 'defer': null}),
         script({'src': '/assets/htmx-alpine-sync.js', 'defer': null}),
         script({
-          'src': 'https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js',
+          'src': useLocalAssets
+              ? '/assets/alpine.min.js'
+              : 'https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js',
           'defer': null,
         }),
         style({}, t(ThemeRenderer.toCss(config.theme))),

@@ -13,6 +13,7 @@ import 'page_renderer.dart';
 class DashboardServer {
   final DashboardConfig config;
   final String assetsDir;
+  final bool useLocalAssets;
   final _services = Services();
 
   /// Lookup by widget ID for the /widget/<id> refresh endpoint.
@@ -21,7 +22,7 @@ class DashboardServer {
   /// Lookup by WidgetConfig object identity for page rendering.
   final Map<WidgetConfig, DashboardWidget> _byConfig = {};
 
-  DashboardServer(this.config, {this.assetsDir = 'assets'}) {
+  DashboardServer(this.config, {this.assetsDir = 'assets', this.useLocalAssets = false}) {
     _buildIndex();
   }
 
@@ -48,7 +49,7 @@ class DashboardServer {
     router.get('/', (Request req) async {
       final pageStr = req.url.queryParameters['page'] ?? '0';
       final pageIdx = int.tryParse(pageStr) ?? 0;
-      final renderer = PageRenderer(config, _byConfig, _services);
+      final renderer = PageRenderer(config, _byConfig, _services, useLocalAssets: useLocalAssets);
       final isHtmx = req.headers['hx-request'] == 'true';
       final node = isHtmx
           ? await renderer.renderPartial(pageIdx)
@@ -80,7 +81,7 @@ class DashboardServer {
       return Response.ok(node.render(), headers: _html);
     });
 
-    router.get('/assets/<path|[^.]+.[^.]+>', (Request req, String path) async {
+    router.get(r'/assets/<path|[^/]+\.[^/]+>', (Request req, String path) async {
       if (path.contains('..')) return Response.forbidden('');
       final file = File('$assetsDir/$path');
       if (!file.existsSync()) {
@@ -100,6 +101,7 @@ class DashboardServer {
   static String _mimeType(String path) {
     if (path.endsWith('.js')) return 'application/javascript; charset=utf-8';
     if (path.endsWith('.css')) return 'text/css; charset=utf-8';
+    if (path.endsWith('.svg')) return 'image/svg+xml';
     return 'text/plain; charset=utf-8';
   }
 

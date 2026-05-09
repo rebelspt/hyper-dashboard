@@ -35,6 +35,12 @@ Future<void> main(List<String> args) async {
       help: 'Path to assets directory',
     )
     ..addFlag(
+      'local-assets',
+      negatable: true,
+      defaultsTo: false,
+      help: 'Serve htmx and Alpine.js from local assets/ instead of CDN',
+    )
+    ..addFlag(
       'help',
       abbr: 'h',
       negatable: false,
@@ -52,6 +58,7 @@ Future<void> main(List<String> args) async {
   final port = int.tryParse(results['port'] as String) ?? 8080;
   final host = results['host'] as String;
   final assetsDir = results['assets'] as String;
+  final localAssets = results['local-assets'] as bool;
 
   print('Loading config from $configPath …');
 
@@ -76,7 +83,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  final dashboardServer = DashboardServer(config, assetsDir: assetsDir);
+  final dashboardServer = DashboardServer(config, assetsDir: assetsDir, useLocalAssets: localAssets);
   final handler = const Pipeline()
       .addMiddleware(logRequests())
       .addHandler(dashboardServer.buildHandler());

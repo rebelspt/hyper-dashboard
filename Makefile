@@ -1,4 +1,4 @@
-.PHONY: all test deps build clean lint fmt fix
+.PHONY: all test deps build clean lint fmt fix run run-local download-assets
 
 all: lint test build
 
@@ -36,7 +36,22 @@ test-integration:
 build: deps
 	@echo "=== Building dashboard ==="
 	mkdir -p build/cli/$$(uname -s | tr '[:upper:]' '[:lower:]')_$$(uname -m)/bundle
-	dart compile exe bin/dashboard.dart -o build/cli/$$(uname -s | tr '[:upper:]' '[:lower:]')_$$(uname -m)/bundle/dashboard
+	dart compile exe bin/hyper_dashboard.dart -o build/cli/$$(uname -s | tr '[:upper:]' '[:lower:]')_$$(uname -m)/bundle/hyper-dashboard
+
+# ── Run ──────────────────────────────────────────────────────────────────────
+
+run:
+	dart run bin/hyper_dashboard.dart --config config/demo.yaml
+
+run-local: download-assets
+	dart run bin/hyper_dashboard.dart --config config/demo.yaml --local-assets
+
+# ── Assets ────────────────────────────────────────────────────────────────────
+
+download-assets:
+	@echo "=== Downloading htmx + alpinejs ==="
+	curl -sLo assets/htmx.min.js https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js
+	curl -sLo assets/alpine.min.js https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js
 
 # ── Lint & Format ──────────────────────────────────────────────────────────────
 
@@ -80,6 +95,9 @@ help:
 	@echo "  test-dartkup     Run dartkup tests only"
 	@echo "  test-integration Run dashboard integration tests"
 	@echo "  build            Compile dashboard binary"
+	@echo "  run              Run dashboard with demo config (CDN assets)"
+	@echo "  run-local        Run dashboard with local assets"
+	@echo "  download-assets  Download htmx + alpinejs to assets/"
 	@echo "  deps             Install all dependencies"
 	@echo "  lint             Run static analysis"
 	@echo "  lint-strict      Strict linting"
