@@ -12,8 +12,9 @@ final _imgSrcRe = RegExp(r'''<img[^>]+src=["']([^"']+)["']''');
 Future<List<RssItem>> fetchRss(
   Services services,
   String url,
-  String feedName,
-) async {
+  String feedName, {
+  bool useChannelImage = true,
+}) async {
   final response = await services.httpClient.get(Uri.parse(url));
   if (response.statusCode != 200) {
     throw Exception('HTTP ${response.statusCode}');
@@ -22,9 +23,9 @@ Future<List<RssItem>> fetchRss(
   final doc = XmlDocument.parse(response.body);
 
   if (doc.findAllElements('feed').isNotEmpty) {
-    return _parseAtom(doc, feedName);
+    return _parseAtom(doc, feedName, useChannelImage: useChannelImage);
   }
-  return _parseRss(doc, feedName);
+  return _parseRss(doc, feedName, useChannelImage: useChannelImage);
 }
 
 String _extractImage(XmlElement el) {
@@ -69,6 +70,13 @@ String _extractImage(XmlElement el) {
     if (match != null) return match.group(1)!;
   }
 
+  final content =
+      el.findElements('content').firstOrNull?.innerText ?? '';
+  if (content.isNotEmpty) {
+    final match = _imgSrcRe.firstMatch(content);
+    if (match != null) return match.group(1)!;
+  }
+
   return '';
 }
 
@@ -103,12 +111,12 @@ String _extractChannelImage(XmlElement channelOrFeed) {
   return '';
 }
 
-List<RssItem> _parseRss(XmlDocument doc, String feedName) {
+List<RssItem> _parseRss(XmlDocument doc, String feedName, {bool useChannelImage = true}) {
   final channel = doc.findAllElements('channel').firstOrNull;
   final channelTitle =
       channel?.findElements('title').firstOrNull?.innerText.trim() ?? feedName;
   final source = feedName.isNotEmpty ? feedName : channelTitle;
-  final channelImage = channel != null ? _extractChannelImage(channel) : '';
+  final channelImage = useChannelImage && channel != null ? _extractChannelImage(channel) : '';
 
   return doc.findAllElements('item').map((item) {
     final title = item.findElements('title').firstOrNull?.innerText.trim() ??
@@ -128,12 +136,12 @@ List<RssItem> _parseRss(XmlDocument doc, String feedName) {
   }).toList();
 }
 
-List<RssItem> _parseAtom(XmlDocument doc, String feedName) {
+List<RssItem> _parseAtom(XmlDocument doc, String feedName, {bool useChannelImage = true}) {
   final feed = doc.findAllElements('feed').firstOrNull;
   final feedTitle =
       feed?.findElements('title').firstOrNull?.innerText.trim() ?? feedName;
   final source = feedName.isNotEmpty ? feedName : feedTitle;
-  final channelImage = feed != null ? _extractChannelImage(feed) : '';
+  final channelImage = useChannelImage && feed != null ? _extractChannelImage(feed) : '';
 
   return doc.findAllElements('entry').map((entry) {
     final title = entry.findElements('title').firstOrNull?.innerText.trim() ??
@@ -155,12 +163,22 @@ List<RssItem> _parseAtom(XmlDocument doc, String feedName) {
             '';
     final imageUrl = _extractImage(entry);
 
+    final author = entry
+            .findElements('author')
+            .firstOrNull
+            ?.findElements('name')
+            .firstOrNull
+            ?.innerText
+            .trim() ??
+        '';
+
     return RssItem(
       title: title,
       link: link,
       pubDate: _parseDate(dateStr) ?? DateTime.now(),
       source: source,
       imageUrl: imageUrl.isNotEmpty ? imageUrl : channelImage,
+      author: author,
     );
   }).toList();
 }

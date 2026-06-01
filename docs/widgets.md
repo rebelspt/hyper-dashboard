@@ -298,7 +298,7 @@ Shows stories from [Lobste.rs](https://lobste.rs/), a technology-focused link-ag
 
 **Type:** `reddit`
 
-Shows posts from a subreddit. Each item links to the article (or Reddit post for self-posts); metadata includes score, comment count, and author.
+Shows posts from a subreddit. Each item links to the Reddit comments page; metadata includes author and post age.
 
 ![Reddit widget](screenshots/reddit/reddit.png)
 
@@ -309,7 +309,6 @@ Shows posts from a subreddit. Each item links to the article (or Reddit post for
   title: r/selfhosted
   subreddit: selfhosted
   limit: 10
-  sort-by: hot
   async-policy: stale
 ```
 
@@ -318,15 +317,13 @@ Shows posts from a subreddit. Each item links to the article (or Reddit post for
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `subreddit` | string | — | Subreddit name without the `r/` prefix (required) |
-| `limit` | int | `15` | Number of posts to fetch and display |
-| `sort-by` | string | `hot` | Feed sort. Any valid Reddit sort: `hot`, `new`, `top`, `rising` |
+| `limit` | int | `15` | Number of posts to display |
 | `show-thumbnails` | bool | `true` | Show post preview images when available. Set to `false` to disable |
 
 ### Notes
 
-- Uses Reddit's public JSON API (`/r/{subreddit}/{sort}.json`). No API key required.
-- Thumbnails are only shown for link posts; self-posts never show a thumbnail.
-- Reddit rate-limits unauthenticated requests. Use a reasonable `cache` duration (e.g. `30m`) to avoid hitting limits.
+- Uses Reddit's public RSS feed (`/r/{subreddit}.rss`). No API key required.
+- Thumbnails are extracted from the post content HTML when available.
 
 ---
 

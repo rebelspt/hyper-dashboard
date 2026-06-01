@@ -4,6 +4,7 @@ class RssItem {
   final DateTime pubDate;
   final String source;
   final String imageUrl;
+  final String author;
 
   const RssItem({
     required this.title,
@@ -11,5 +12,6 @@ class RssItem {
     required this.pubDate,
     required this.source,
     this.imageUrl = '',
+    this.author = '',
   });
 }
