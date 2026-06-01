@@ -184,6 +184,22 @@ pages:
       # ── CENTER COLUMN ──
       - size: full
         widgets:
+          - type: split-column
+            max-columns: 2
+            async-policy: stale
+            widgets:
+              - type: reddit
+                title: r/selfhosted
+                subreddit: selfhosted
+                limit: 5
+                sort-by: hot
+
+              - type: reddit
+                title: r/programming
+                subreddit: programming
+                limit: 5
+                sort-by: hot
+
           - type: html
             title: About This Page
             source: |
@@ -232,23 +248,6 @@ pages:
               - UCR-DXc1voovS8nhAvccRZhg   # Jeff Geerling
               - UCnUYZLuoy1rq1aVMwx4aTzw   # Fireship
               - UCVls1GmFKf6WlTraIb_IaJg   # DistroTube
-
-          - type: split-column
-            max-columns: 2
-            async-policy: stale
-            widgets:
-              - type: reddit
-                title: r/selfhosted
-                subreddit: selfhosted
-                limit: 5
-                sort-by: hot
-
-              - type: reddit
-                title: r/programming
-                subreddit: programming
-                limit: 5
-                sort-by: hot
-
   # ──────────────────────────────────────────────
   # PAGE 3 — Examples (for reference)
   # ──────────────────────────────────────────────
