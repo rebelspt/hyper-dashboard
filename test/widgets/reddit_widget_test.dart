@@ -136,6 +136,40 @@ void main() {
       expect(RegExp(r'<img ').allMatches(html).length, equals(1));
     });
 
+    test('appends params to RSS URL when configured', () async {
+      final client = _MockClient({
+        'https://www.reddit.com/r/PS3.rss?sort=hot&t=week':
+            http.Response(_rssBody, 200),
+      });
+      final services = Services(httpClient: client);
+      final widget = RedditWidget(_config({
+        'subreddit': 'PS3',
+        'params': {'sort': 'hot', 't': 'week'},
+      }), 'id');
+      final node = await widget.renderBody(services, _ctx());
+      final html = node.render();
+
+      expect(html, contains('Post One'));
+      expect(html, contains('Post Two'));
+    });
+
+    test('respects limit option for displayed items', () async {
+      final client = _MockClient({
+        'https://www.reddit.com/r/PS3.rss': http.Response(_rssBody, 200),
+      });
+      final services = Services(httpClient: client);
+      final widget = RedditWidget(_config({
+        'subreddit': 'PS3',
+        'limit': 1,
+      }), 'id');
+      final node = await widget.renderBody(services, _ctx());
+      final html = node.render();
+
+      expect(html, contains('Post One'));
+      expect(html, contains('1 more'));
+      expect(html, contains('x-cloak'));
+    });
+
     test('shows empty message when feed has no entries', () async {
       final emptyFeed = '''<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">

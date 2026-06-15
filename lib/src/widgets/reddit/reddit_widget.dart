@@ -23,11 +23,18 @@ class RedditWidget extends DashboardWidget {
       return p({'cls': 'widget-empty'}, 'No subreddit configured.');
     }
 
-    final url = 'https://www.reddit.com/r/$subreddit.rss';
+    final showLimit = config.options['limit'] as int? ?? 5;
+
+    final params = config.options['params'] as Map<String, dynamic>? ?? {};
+    final uri = params.isNotEmpty
+        ? Uri.https('www.reddit.com', '/r/$subreddit.rss',
+            params.map((k, v) => MapEntry(k, v.toString())))
+        : Uri.parse('https://www.reddit.com/r/$subreddit.rss');
 
     final items =
         await ctx.cache.fetch<List<RssItem>>('posts', config.cache, () async {
-      return fetchRss(services, url, subreddit, useChannelImage: false);
+      return fetchRss(services, uri.toString(), subreddit,
+          useChannelImage: false);
     });
 
     if (items.isEmpty) {
@@ -48,7 +55,7 @@ class RedditWidget extends DashboardWidget {
                 ],
               ))
           .toList(),
-      showLimit: 5,
+      showLimit: showLimit,
     );
   }
 }

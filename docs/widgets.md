@@ -309,6 +309,9 @@ Shows posts from a subreddit. Each item links to the Reddit comments page; metad
   title: r/selfhosted
   subreddit: selfhosted
   limit: 10
+  params:
+    sort: hot
+    t: week
   async-policy: stale
 ```
 
@@ -317,13 +320,14 @@ Shows posts from a subreddit. Each item links to the Reddit comments page; metad
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `subreddit` | string | — | Subreddit name without the `r/` prefix (required) |
-| `limit` | int | `15` | Number of posts to display |
-| `show-thumbnails` | bool | `true` | Show post preview images when available. Set to `false` to disable |
+| `limit` | int | `5` | Number of posts to display |
+| `params` | map | `{}` | Extra query parameters appended to the RSS URL (e.g. `sort`, `t`, `limit`) |
 
 ### Notes
 
 - Uses Reddit's public RSS feed (`/r/{subreddit}.rss`). No API key required.
 - Thumbnails are extracted from the post content HTML when available.
+- Use `params` to pass query parameters like `sort: new` or `t: week` to the Reddit RSS feed.
 
 ---
 

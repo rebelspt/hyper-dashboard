@@ -145,7 +145,6 @@ pages:
             title: r/technology
             subreddit: technology
             limit: 8
-            sort-by: hot
             cache: 15m
             async-policy: stale
 
@@ -192,13 +191,11 @@ pages:
                 title: r/selfhosted
                 subreddit: selfhosted
                 limit: 5
-                sort-by: hot
 
               - type: reddit
                 title: r/programming
                 subreddit: programming
                 limit: 5
-                sort-by: hot
 
           - type: html
             title: About This Page
